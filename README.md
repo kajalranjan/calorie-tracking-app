@@ -95,7 +95,10 @@ Then enable Pages as described above.
   the more specific you are about ingredients/portions, the better
   ("1.5 cups white rice, 6oz grilled chicken breast, 1 tbsp olive oil" beats
   "chicken and rice"). Treat it as a helpful estimate, not a lab-verified
-  number.
+  number. Placing a coin (or another object of known size, like a utensil)
+  next to your plate before taking the photo gives the model a scale
+  reference, which noticeably helps it judge portion size more accurately —
+  the app prompts Gemini to look for and use one when it's in frame.
 - **Privacy**: photos/descriptions you submit for AI estimation are sent to
   Google's Gemini API (subject to Google's terms/privacy policy for that
   API). Entries you enter calories for manually never leave your device.

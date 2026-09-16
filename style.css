@@ -15,7 +15,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--color-cream);
+  background: var(--color-green);
   color: var(--color-dark);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -183,7 +183,7 @@ html, body {
 
 .today-entries h2 {
   font-size: 1rem;
-  color: var(--color-brown);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin: 0 0 10px 2px;
@@ -196,10 +196,11 @@ html, body {
 }
 
 .empty-msg {
-  color: var(--color-brown);
+  color: #ffffff;
   font-size: 0.92rem;
   text-align: center;
   padding: 18px 0;
+  opacity: 0.9;
 }
 .empty-msg.hidden { display: none; }
 

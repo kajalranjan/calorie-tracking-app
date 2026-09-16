@@ -173,7 +173,10 @@ async function estimateCaloriesWithAI({ description, grams, photoDataUrl }) {
   let prompt = 'You are a careful, realistic nutrition estimator helping someone log a meal they ate.\n\n';
   prompt += `Food description (from the person): ${description}\n`;
   if (grams) prompt += `Reported total weight: ${grams} grams.\n`;
-  if (photoDataUrl) prompt += 'A photo of the meal is attached — use it together with the description to judge portion size and ingredients.\n';
+  if (photoDataUrl) {
+    prompt += 'A photo of the meal is attached — use it together with the description to judge portion size and ingredients. ';
+    prompt += 'If a coin or other common object of a known, standard size (e.g. a coin, a utensil, a credit card) is visible next to the food, use it as a scale reference to more precisely judge the real-world size/volume of the food items, and factor that into your portion and calorie estimate.\n';
+  }
   prompt += '\nEstimate the nutrition for the WHOLE described portion (not per 100g). ';
   prompt += 'Respond with ONLY a raw JSON object, no markdown fences, no extra commentary, in exactly this shape:\n';
   prompt += '{"calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "confidence": "low" | "medium" | "high", "notes": "one short sentence explaining your reasoning"}';
