@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Calorie Tracker</title>
+<meta name="description" content="A simple, private, local-only calorie tracker with AI-assisted meal calorie estimation.">
+<meta name="theme-color" content="#A31621">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calories">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="app-header">
+    <h1>Calorie Tracker</h1>
+    <div class="header-actions">
+      <button id="openSettingsBtn" class="icon-btn" aria-label="Settings" title="Settings">⚙️</button>
+      <button id="openLogBtn" class="icon-btn" aria-label="View log" title="View log">📋</button>
+    </div>
+  </header>
+
+  <main class="home">
+
+    <section class="goal-card">
+      <div class="goal-header">
+        <span class="goal-label">Today · <span id="todayLabel"></span></span>
+        <button id="editGoalBtn" class="link-btn">Edit goal</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+      </div>
+
+      <div class="goal-numbers">
+        <span id="totalCalories">0</span> <span class="of-text">/</span> <span id="goalCalories">2000</span> <span class="kcal-text">kcal</span>
+      </div>
+      <div id="remainingText" class="remaining-text"></div>
+    </section>
+
+    <button id="logEntryBtn" class="primary-btn big-btn">+ Log your entry for today</button>
+
+    <section class="today-entries">
+      <h2>Today's Meals</h2>
+      <div id="todayList" class="entry-list"></div>
+      <p id="emptyToday" class="empty-msg">No meals logged yet today.</p>
+    </section>
+
+  </main>
+</div>
+
+<!-- Entry Modal (add / edit) -->
+<div id="entryModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="entryModalTitle">Log Meal</h2>
+      <button class="icon-btn close-btn" data-close="entryModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="photo-section">
+        <img id="photoPreview" class="photo-preview hidden" alt="Food photo preview">
+        <div class="photo-buttons">
+          <button id="takePhotoBtn" class="secondary-btn" type="button">📷 Add photo (optional)</button>
+          <button id="removePhotoBtn" class="link-btn hidden" type="button">Remove photo</button>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+      </div>
+
+      <label class="field-label" for="descriptionInput">What did you eat? <span class="required">required</span></label>
+      <textarea id="descriptionInput" rows="3" placeholder="e.g. Grilled chicken breast with white rice and broccoli — about 1.5 cups rice, 6oz chicken. Cooked with olive oil."></textarea>
+
+      <div class="field-row">
+        <div class="field-col">
+          <label class="field-label" for="gramsInput">Weight (g) <span class="optional">optional</span></label>
+          <input type="number" id="gramsInput" min="0" inputmode="numeric" placeholder="e.g. 350">
+        </div>
+        <div class="field-col">
+          <label class="field-label" for="manualCaloriesInput">Calories <span class="optional">optional</span></label>
+          <input type="number" id="manualCaloriesInput" min="0" inputmode="numeric" placeholder="e.g. 450">
+        </div>
+      </div>
+      <p class="hint-text">Know the calories from a nutrition label? Enter it above and we'll skip AI estimation and use your number directly.</p>
+
+      <div id="aiStatus" class="ai-status hidden"></div>
+      <div id="aiResultSummary" class="ai-result hidden"></div>
+
+      <button id="submitEntryBtn" class="primary-btn" type="button">Calculate &amp; Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Drawer -->
+<div id="logDrawer" class="modal-overlay hidden">
+  <div class="modal modal-large">
+    <div class="modal-header">
+      <h2>Your Log</h2>
+      <button class="icon-btn close-btn" data-close="logDrawer" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="logContent"></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="icon-btn close-btn" data-close="settingsModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="apiKeyInput">Google Gemini API key</label>
+      <input type="password" id="apiKeyInput" placeholder="Paste your free Gemini API key" autocomplete="off">
+      <p class="hint-text">Get a free key at <strong>aistudio.google.com/apikey</strong>. It's stored only in this browser, on this device, and is sent directly to Google when estimating calories.</p>
+
+      <label class="field-label" for="modelInput">Gemini model</label>
+      <input type="text" id="modelInput" placeholder="gemini-2.0-flash">
+      <p class="hint-text">Leave as default unless Google renames/retires the free model.</p>
+
+      <button id="saveSettingsBtn" class="primary-btn" type="button">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div id="goalModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="goalModalTitle">Set Daily Calorie Goal</h2>
+      <button class="icon-btn close-btn" data-close="goalModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="goalInput">Daily calorie goal (kcal)</label>
+      <input type="number" id="goalInput" min="0" inputmode="numeric" placeholder="e.g. 2000">
+      <button id="saveGoalBtn" class="primary-btn" type="button">Save Goal</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

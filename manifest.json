@@ -1,0 +1,13 @@
+{
+  "name": "Calorie Tracker",
+  "short_name": "Calories",
+  "description": "A private, local-only calorie tracker with AI-assisted meal estimation.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#F4E7D3",
+  "theme_color": "#A31621",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
