@@ -43,9 +43,25 @@ over.
 
 Google's free tier has rate limits (requests per minute/day) — if you hit
 "429" errors from a lot of rapid logging, just wait a bit and try again.
-Google occasionally renames or retires free models; if `gemini-2.0-flash`
-stops working, check [ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models)
-for the current free vision-capable model name and update it in Settings.
+
+Google regularly retires older model names (this app originally shipped
+pointed at `gemini-2.0-flash`, which Google shut down; it's now set to
+`gemini-3.6-flash`). If estimation ever starts failing with a "model not
+found" / 404 error again, the error message from Google usually tells you
+exactly which model to switch to — open Settings (⚙️) and paste the new
+name into **Gemini model**. You can also check
+[ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models)
+for the current list. Note: if you already saved settings in the app
+before this update, your browser has the old `gemini-2.0-flash` value
+stored — open Settings once and update the model field (or clear it and
+re-save) to pick up the new default.
+
+This app calls Gemini's `generateContent` endpoint directly. Google has
+also introduced a newer "Interactions API" as its recommended path going
+forward (with server-side conversation state, agent orchestration, etc.),
+but as of this writing `generateContent` is still fully supported — it's
+simpler and is all this app's single-shot "analyze this one meal" use case
+needs, so there's no requirement to migrate.
 
 ## Deploying to GitHub Pages
 

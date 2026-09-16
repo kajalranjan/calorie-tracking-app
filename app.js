@@ -162,7 +162,7 @@ function compressImageFile(file, maxDim = 900, quality = 0.72) {
 // ---------------------------------------------------------------------
 async function estimateCaloriesWithAI({ description, grams, photoDataUrl }) {
   const apiKey = await dbGetSetting('geminiApiKey', '');
-  const model = (await dbGetSetting('geminiModel', 'gemini-2.0-flash')) || 'gemini-2.0-flash';
+  const model = (await dbGetSetting('geminiModel', 'gemini-3.6-flash')) || 'gemini-3.6-flash';
 
   if (!apiKey) {
     const err = new Error('No Gemini API key set. Open Settings to add your free API key.');
@@ -555,13 +555,13 @@ async function handleSaveGoal() {
 // ---------------------------------------------------------------------
 async function openSettingsModal() {
   document.getElementById('apiKeyInput').value = await dbGetSetting('geminiApiKey', '');
-  document.getElementById('modelInput').value = await dbGetSetting('geminiModel', 'gemini-2.0-flash');
+  document.getElementById('modelInput').value = await dbGetSetting('geminiModel', 'gemini-3.6-flash');
   openModal('settingsModal');
 }
 
 async function handleSaveSettings() {
   const apiKey = document.getElementById('apiKeyInput').value.trim();
-  const model = document.getElementById('modelInput').value.trim() || 'gemini-2.0-flash';
+  const model = document.getElementById('modelInput').value.trim() || 'gemini-3.6-flash';
   await dbSetSetting('geminiApiKey', apiKey);
   await dbSetSetting('geminiModel', model);
   closeModal('settingsModal');
