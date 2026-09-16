@@ -126,7 +126,37 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 // ---------------------------------------------------------------------
 // Image compression (resize + re-encode as JPEG)
 // ---------------------------------------------------------------------
-function compressImageFile(file, maxDim = 900, quality = 0.72) {
+async function compressImageFile(file, maxDim = 900, quality = 0.72) {
+  // Prefer createImageBitmap with resize hints: on phones this lets the
+  // browser downscale WHILE decoding instead of first decoding a full
+  // 12-50MP camera photo into memory and only shrinking it afterwards.
+  // That first approach is what tends to trigger Chrome's "low memory"
+  // warning on phones with many tabs open. Falls back to the older
+  // FileReader+<img>+canvas approach on browsers without support.
+  if (window.createImageBitmap) {
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file, { resizeWidth: maxDim, resizeQuality: 'medium' });
+      if (bitmap.height > maxDim) {
+        bitmap.close && bitmap.close();
+        bitmap = await createImageBitmap(file, { resizeHeight: maxDim, resizeQuality: 'medium' });
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close && bitmap.close();
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      canvas.width = 0;
+      canvas.height = 0;
+      return dataUrl;
+    } catch (bitmapErr) {
+      if (bitmap && bitmap.close) bitmap.close();
+      // fall through to the legacy path below
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error);
@@ -150,6 +180,8 @@ function compressImageFile(file, maxDim = 900, quality = 0.72) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', quality));
+        canvas.width = 0;
+        canvas.height = 0;
       };
       img.src = e.target.result;
     };
