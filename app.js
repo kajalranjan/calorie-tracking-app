@@ -160,7 +160,14 @@ function compressImageFile(file, maxDim = 900, quality = 0.72) {
 // ---------------------------------------------------------------------
 // Gemini API call
 // ---------------------------------------------------------------------
-async function estimateCaloriesWithAI({ description, grams, photoDataUrl }) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const RETRYABLE_STATUSES = [503, 429];
+const MAX_AI_ATTEMPTS = 3;
+
+async function estimateCaloriesWithAI({ description, grams, photoDataUrl, onStatus }) {
   const apiKey = await dbGetSetting('geminiApiKey', '');
   const model = (await dbGetSetting('geminiModel', 'gemini-3.6-flash')) || 'gemini-3.6-flash';
 
@@ -194,19 +201,33 @@ async function estimateCaloriesWithAI({ description, grams, photoDataUrl }) {
   };
 
   let res;
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch (networkErr) {
-    const err = new Error('Network error reaching Gemini. Check your connection and try again.');
-    err.code = 'NETWORK_ERROR';
-    throw err;
-  }
+  for (let attempt = 1; attempt <= MAX_AI_ATTEMPTS; attempt++) {
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch (networkErr) {
+      const err = new Error('Network error reaching Gemini. Check your connection and try again.');
+      err.code = 'NETWORK_ERROR';
+      throw err;
+    }
 
-  if (!res.ok) {
+    if (res.ok) break;
+
+    const isRetryable = RETRYABLE_STATUSES.includes(res.status);
+    if (isRetryable && attempt < MAX_AI_ATTEMPTS) {
+      const waitMs = attempt * 1500;
+      if (onStatus) {
+        onStatus(res.status === 503
+          ? `Gemini is busy right now — retrying in ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}/${MAX_AI_ATTEMPTS})…`
+          : `Rate limited — retrying in ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}/${MAX_AI_ATTEMPTS})…`);
+      }
+      await sleep(waitMs);
+      continue;
+    }
+
     let detail = '';
     try {
       const errJson = await res.json();
@@ -458,7 +479,8 @@ async function handleSubmitEntry() {
       const result = await estimateCaloriesWithAI({
         description,
         grams,
-        photoDataUrl: state.pendingPhotoDataUrl
+        photoDataUrl: state.pendingPhotoDataUrl,
+        onStatus: (msg) => { aiStatus.textContent = msg; }
       });
       finalCalories = result.calories;
       source = 'ai';
